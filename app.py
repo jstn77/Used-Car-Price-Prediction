@@ -443,23 +443,6 @@ elif menu == "Prediction":
     </div>
     """, unsafe_allow_html=True)
 
-    # Initialize session state for mileage synchronization
-    if 'mileage' not in st.session_state:
-        st.session_state.mileage = 50_000
-
-    st.markdown("**Mileage (km)**")
-    m1, m2 = st.columns([2, 1])
-    with m1:
-        st.session_state.mileage = st.slider("Slider", min_value=0, max_value=500_000, 
-                                             value=st.session_state.mileage, step=500,
-                                             format="%d km", label_visibility="collapsed")
-    with m2:
-        st.session_state.mileage = st.number_input("Manual Input", min_value=0, max_value=500_000, 
-                                                   value=st.session_state.mileage, step=100,
-                                                   label_visibility="collapsed")
-
-    mileage = st.session_state.mileage
-
     with st.form("prediction_form"):
         c1, c2 = st.columns(2)
         with c1:
@@ -468,6 +451,15 @@ elif menu == "Prediction":
         with c2:
             transmission = st.selectbox("Transmission", options=le_trans.classes_)
             year         = st.number_input("Manufacturing Year", min_value=2000, max_value=2026, value=2020)
+
+        st.markdown("**Mileage (km)**")
+        m1, m2 = st.columns([2, 1])
+        with m1:
+            mileage = st.slider("Slider", min_value=0, max_value=500_000, value=50_000, step=500,
+                                format="%d km", label_visibility="collapsed")
+        with m2:
+            mileage = st.number_input("Manual Input", min_value=0, max_value=500_000, value=mileage, step=100,
+                                      label_visibility="collapsed")
 
         submitted = st.form_submit_button("🔍  Predict Price")
 
