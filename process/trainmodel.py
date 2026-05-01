@@ -6,8 +6,8 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from preprocessing import load_and_merge, clean_data, remove_outlier, feature_engineering
-from eda import run_eda
+from process.preprocessing import load_and_merge, clean_data, remove_outlier, feature_engineering
+from process.eda import run_eda
 
 # LOAD & PREPROCESS
 df = load_and_merge()
