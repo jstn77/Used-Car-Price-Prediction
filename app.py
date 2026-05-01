@@ -86,7 +86,7 @@ if menu == "Dataset":
 
 # EDA
 elif menu == "EDA":
-    st.subheader("📊 Exploratory Data Analysis")
+    st.subheader("Exploratory Data Analysis")
 
     st.write("## 1. Overview Data")
     st.write("Jumlah Data:", df.shape)
