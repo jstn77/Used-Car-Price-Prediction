@@ -8,7 +8,7 @@ model = joblib.load("model/model.pkl")
 le_trans = joblib.load("model/le_trans.pkl")
 model_columns = joblib.load("model/model_columns.pkl")
 
-# LOAD DATA UNTUK VALIDASI
+# LOAD DATA
 df1 = pd.read_csv("dataset/used_car.csv", usecols=['brand', 'model'])
 df2 = pd.read_csv("dataset/used_car_data_new.csv", usecols=['brand', 'model'])
 
@@ -91,7 +91,7 @@ if not trans_matches:
 transmission = trans_matches[0]
 
 # PRINT INTERPRETASI
-print("\n🔍 Hasil interpretasi input:")
+print("\nHasil interpretasi input:")
 print("Brand       :", brand)
 print("Model       :", car_name)
 print("Transmission:", transmission)

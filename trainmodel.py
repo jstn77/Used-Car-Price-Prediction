@@ -58,4 +58,4 @@ joblib.dump(model, "model/model.pkl")
 joblib.dump(le_trans, "model/le_trans.pkl")
 joblib.dump(list(X.columns), "model/model_columns.pkl")
 
-print("\n✅ Model Saved!")
+print("\nModel Saved!")
