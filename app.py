@@ -43,17 +43,28 @@ le_trans = joblib.load("model/le_trans.pkl")
 model_columns = joblib.load("model/model_columns.pkl")
 
 # SMART MATCH
-def smart_match(input_str, choices):
+def smart_match(input_str, choices, threshold=0.6):
     input_str = input_str.lower().strip()
 
+    # 1. exact match
     if input_str in choices:
-        return [input_str]
+        return input_str, 1.0
 
-    contains_matches = [c for c in choices if input_str in c]
-    if contains_matches:
-        return contains_matches[:5]
+    # 2. similarity scoring
+    best_match = None
+    best_score = 0
 
-    return difflib.get_close_matches(input_str, choices, n=5, cutoff=0.3)
+    for c in choices:
+        score = difflib.SequenceMatcher(None, input_str, c).ratio()
+        if score > best_score:
+            best_score = score
+            best_match = c
+
+    # 3. threshold check
+    if best_score >= threshold:
+        return best_match, best_score
+    else:
+        return None, best_score
 
 valid_brands = df['brand'].unique()
 valid_models = df['model'].unique()
