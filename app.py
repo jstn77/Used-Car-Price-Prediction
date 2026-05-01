@@ -100,11 +100,11 @@ elif menu == "EDA":
     st.subheader("Exploratory Data Analysis")
 
     st.write("## 1. Overview Data")
-    st.write("Jumlah Data:", df.shape)
-    st.write("Tipe Data:")
+    st.write("Total Data:", df.shape)
+    st.write("Data Types:")
     st.write(df.dtypes)
 
-    st.write("## 2. Statistik Deskriptif")
+    st.write("## 2. Descriptive Statistic")
     st.write(df.describe())
 
     st.write("## 3. Missing Values")
@@ -113,11 +113,11 @@ elif menu == "EDA":
     st.divider()
 
     # DISTRIBUSI HARGA
-    st.write("## 4. Distribusi Harga")
+    st.write("## 4. Price Distribution")
 
     fig, ax = plt.subplots()
     sns.histplot(df['price (Rp)'], bins=40, kde=True, ax=ax)
-    ax.set_title("Distribusi Harga Mobil")
+    ax.set_title("Car Price Distribution")
     st.pyplot(fig)
 
     # TOP BRAND
@@ -137,11 +137,11 @@ elif menu == "EDA":
     st.pyplot(fig)
 
     # YEAR DISTRIBUTION
-    st.write("## 7. Tahun Mobil")
+    st.write("## 7. Car Year")
 
     fig, ax = plt.subplots()
     sns.histplot(df['year'], bins=20, ax=ax)
-    ax.set_title("Distribusi Tahun Mobil")
+    ax.set_title("Car Year Distribution")
     st.pyplot(fig)
 
     # MILEAGE VS PRICE
