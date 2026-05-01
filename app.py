@@ -43,7 +43,7 @@ le_trans = joblib.load("model/le_trans.pkl")
 model_columns = joblib.load("model/model_columns.pkl")
 
 # SMART MATCH
-def smart_match(input_str, choices, threshold=0.6):
+def smart_match(input_str, choices, threshold=0.5):
     input_str = input_str.lower().strip()
 
     # 1. exact match
