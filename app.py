@@ -6,8 +6,8 @@ import difflib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.set_page_config(page_title="Car Price Prediction", layout="wide")
-st.title("Car Price Prediction Indonesia")
+st.set_page_config(page_title="Used Car Price Prediction", layout="wide")
+st.title("Used Car Price Prediction Indonesia")
 
 # LOAD DATA
 @st.cache_data
@@ -58,7 +58,7 @@ def smart_match(input_str, choices):
 valid_brands = df['brand'].unique()
 valid_models = df['model'].unique()
 
-# FIX: mapping brand => model
+# mapping brand => model
 brand_model_map = df.groupby('brand')['model'].unique().to_dict()
 
 # SIDEBAR
@@ -101,9 +101,7 @@ elif menu == "EDA":
 
     st.divider()
 
-    # =========================
     # DISTRIBUSI HARGA
-    # =========================
     st.write("## 4. Distribusi Harga")
 
     fig, ax = plt.subplots()
@@ -111,9 +109,7 @@ elif menu == "EDA":
     ax.set_title("Distribusi Harga Mobil")
     st.pyplot(fig)
 
-    # =========================
     # TOP BRAND
-    # =========================
     st.write("## 5. Top Brand")
 
     fig, ax = plt.subplots()
@@ -121,9 +117,7 @@ elif menu == "EDA":
     ax.set_title("Top 10 Brand")
     st.pyplot(fig)
 
-    # =========================
     # TRANSMISSION
-    # =========================
     st.write("## 6. Transmission Distribution")
 
     fig, ax = plt.subplots()
@@ -131,9 +125,7 @@ elif menu == "EDA":
     ax.set_title("Manual vs Automatic")
     st.pyplot(fig)
 
-    # =========================
     # YEAR DISTRIBUTION
-    # =========================
     st.write("## 7. Tahun Mobil")
 
     fig, ax = plt.subplots()
@@ -141,9 +133,7 @@ elif menu == "EDA":
     ax.set_title("Distribusi Tahun Mobil")
     st.pyplot(fig)
 
-    # =========================
     # MILEAGE VS PRICE
-    # =========================
     st.write("## 8. Mileage vs Price")
 
     fig, ax = plt.subplots()
@@ -151,9 +141,7 @@ elif menu == "EDA":
     ax.set_title("Mileage vs Price")
     st.pyplot(fig)
 
-    # =========================
     # YEAR VS PRICE
-    # =========================
     st.write("## 9. Year vs Price")
 
     fig, ax = plt.subplots()
@@ -172,22 +160,90 @@ elif menu == "Preprocessing":
 
 # TRAINING
 elif menu == "Training":
-    st.subheader("Training")
+    st.subheader("Model Training & Evaluation")
 
-    st.write("""
-    Model: Random Forest Regressor
-    
-    - One Hot Encoding
-    - Label Encoding
-    - Log Transform
+    st.markdown("### Model Used")
+    st.info("""
+    **Random Forest Regressor**
+
+    This model works by:
+    - Combining multiple decision trees
+    - Reducing overfitting
+    - Handling non-linear relationships effectively (e.g., car price patterns)
+    """)
+
+    st.markdown("### Training Pipeline")
+
+    st.markdown("""
+    #### 1. Data Preparation
+    - Merged two datasets (used_car & used_car_data_new)
+    - Data cleaning: removed missing values & duplicates
+    - Text normalization (lowercase & trimming)
+
+    #### 2. Feature Engineering
+    - Created new feature:
+      - `car_age = 2026 - year`
+
+    #### 3. Encoding
+    - Label Encoding → transmission
+    - One-Hot Encoding → brand & model
+
+    #### 4. Target Transformation
+    - Applied `log1p(price)` to:
+      - Reduce skewness
+      - Improve model stability
+
+    #### 5. Data Splitting
+    - Training set: 80%
+    - Testing set: 20%
+
+    #### 6. Model Training
+    - RandomForestRegressor (n_estimators=150)
+    """)
+
+    st.markdown("### Model Performance")
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("MAE", "Rp 22.9M")
+    col2.metric("RMSE", "Rp 35.8M")
+    col3.metric("R² Score", "0.59")
+
+    st.caption("Evaluation performed on test data after inverse log transformation")
+
+    st.markdown("### Feature Importance")
+
+    try:
+        importances = model.feature_importances_
+        feature_names = model_columns
+
+        fi_df = pd.DataFrame({
+            "feature": feature_names,
+            "importance": importances
+        }).sort_values(by="importance", ascending=False).head(10)
+
+        fig, ax = plt.subplots()
+        ax.barh(fi_df["feature"], fi_df["importance"])
+        ax.invert_yaxis()
+
+        st.pyplot(fig)
+
+    except:
+        st.warning("Feature importance is not available")
+
+    st.markdown("### Conclusion")
+
+    st.success("""
+    - Mileage and car age are strong predictors of price
+    - Brand and model significantly influence the prediction
     """)
 
 # PREDICTION
 elif menu == "Prediction":
-    st.subheader("Used Car Price Prediction (Smart Input)")
+    st.subheader("Input to predict used car price:")
 
-    brand_input = st.text_input("Car Brand (Toyota, Honda, Mitsubishi, ...)")
-    model_input = st.text_input("Car Model (Brio, Pajero, Inova, ...)")
+    brand_input = st.text_input("Car Brand (Toyota, Honda, Daihatsu, ...)")
+    model_input = st.text_input("Car Model (Inova, Brio, Agya, ...)")
     transmission = st.selectbox(
         "Transmission",
         options=le_trans.classes_
@@ -202,7 +258,7 @@ elif menu == "Prediction":
         brand_matches = smart_match(brand_input, valid_brands)
 
         if not brand_matches:
-            st.error("Brand tidak ditemukan")
+            st.error("Brand Not Found")
             st.stop()
 
         brand = brand_matches[0]
@@ -213,7 +269,7 @@ elif menu == "Prediction":
         model_matches = smart_match(model_input, filtered_models)
 
         if not model_matches:
-            st.error("Model tidak ditemukan")
+            st.error("Model Not Found")
             st.stop()
 
         car_name = model_matches[0]
@@ -222,7 +278,7 @@ elif menu == "Prediction":
         transmission = transmission
 
         st.info(f"""
-        🔍 Hasil interpretasi:
+        Interpretation results:
         - Brand: {brand}
         - Model: {car_name}
         - Transmission: {transmission}
@@ -243,16 +299,16 @@ elif menu == "Prediction":
         if brand_col in model_columns:
             input_df[brand_col] = 1
         else:
-            st.error("Brand tidak dikenali model")
+            st.error("Brand not recognized by model")
             st.stop()
 
-        # MODEL SET (FIX UTAMA)
+        # MODEL SET (FIX)
         model_col = f"model_{car_name}"
 
         if model_col in model_columns:
             input_df[model_col] = 1
         else:
-            st.warning("Model tidak persis ada, mencari yang paling mirip...")
+            st.warning("The model doesn't exactly exist, looking for the closest one")
 
             model_candidates = [
                 col.replace("model_", "")
@@ -265,9 +321,9 @@ elif menu == "Prediction":
             if closest:
                 fixed_model = closest[0]
                 input_df[f"model_{fixed_model}"] = 1
-                st.success(f"Diganti ke model terdekat: {fixed_model}")
+                st.success(f"Replaced to the nearest model: {fixed_model}")
             else:
-                st.error("Tidak ada model mirip di training")
+                st.error("There are no similar models in training")
                 st.stop()
         
         # PREDICT
@@ -276,6 +332,6 @@ elif menu == "Prediction":
         pred = np.expm1(pred_log)
 
         if np.isinf(pred) or np.isnan(pred):
-            st.error("Prediksi gagal")
+            st.error("Prediction failed")
         else:
-            st.success(f"Prediksi Harga: Rp {int(pred):,}")
+            st.success(f"Price Prediction: Rp {int(pred):,}")
