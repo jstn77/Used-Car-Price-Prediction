@@ -1,35 +1,25 @@
-/* ── Color tokens ───────────────────────────────────────────────────────────
-   Dark (default)  →  zinc-based shadcn palette
-   Light override  →  prefers-color-scheme: light
+/* ── Color tokens ────────────────────────────────────────────────────────────
+   Built on top of Streamlit's injected CSS variables so they automatically
+   follow the in-app theme toggle.  Streamlit injects:
+     --background-color           → main page background
+     --secondary-background-color → sidebar / widget backgrounds
+     --text-color                 → primary text
+     --primary-color              → accent / brand color
+   Everything else is derived with color-mix() so no media query is needed.
    ─────────────────────────────────────────────────────────────────────── */
 :root {
-    --bg         : #09090b;
-    --sidebar-bg : #09090b;
-    --card       : #18181b;
-    --border     : #27272a;
-    --fg         : #fafafa;
-    --fg-2       : #a1a1aa;
-    --muted      : #71717a;
-    --subtle     : #52525b;
-    --accent     : #3b82f6;
-    --nav-hover  : rgba(255,255,255,0.06);
-    --nav-active : rgba(255,255,255,0.09);
-}
+    --bg         : var(--background-color, #09090b);
+    --sidebar-bg : var(--background-color, #09090b);
+    --card       : var(--secondary-background-color, #18181b);
+    --fg         : var(--text-color, #fafafa);
+    --accent     : var(--primary-color, #3b82f6);
 
-@media (prefers-color-scheme: light) {
-    :root {
-        --bg         : #ffffff;
-        --sidebar-bg : #fafafa;
-        --card       : #f4f4f5;
-        --border     : #e4e4e7;
-        --fg         : #09090b;
-        --fg-2       : #52525b;
-        --muted      : #71717a;
-        --subtle     : #a1a1aa;
-        --accent     : #2563eb;
-        --nav-hover  : rgba(0,0,0,0.04);
-        --nav-active : rgba(0,0,0,0.08);
-    }
+    --border     : color-mix(in srgb, var(--text-color, #fafafa) 12%, var(--background-color, #09090b));
+    --fg-2       : color-mix(in srgb, var(--text-color, #fafafa) 62%, var(--background-color, #09090b));
+    --muted      : color-mix(in srgb, var(--text-color, #fafafa) 43%, var(--background-color, #09090b));
+    --subtle     : color-mix(in srgb, var(--text-color, #fafafa) 28%, var(--background-color, #09090b));
+    --nav-hover  : color-mix(in srgb, var(--text-color, #fafafa)  6%, var(--background-color, #09090b));
+    --nav-active : color-mix(in srgb, var(--text-color, #fafafa)  9%, var(--background-color, #09090b));
 }
 
 /* ── Base ─────────────────────────────────────────────────────────────────── */
@@ -56,11 +46,46 @@ section[data-testid="stSidebar"] > div {
     padding: 1.25rem 0 1rem 0 !important;
 }
 
+/* Streamlit generates stVerticalBlock for stacked children; the emotion hash is not stable. */
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+    gap: 0 !important;
+}
+
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div {
+    margin: 0 !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlockBorderWrapper"] {
+    margin: 0.5rem 0 0.25rem 0;
+    padding: 0.35rem 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+}
+
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"] {
+    gap: 0 !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stButton"] {
+    margin: 0 !important;
+}
+
+section[data-testid="stExpanderDetails"] {
+    padding-bottom: 50rem;
+}
+
 /* ── Sidebar nav — full-stretch button-style list ────────────────────────── */
 
 /* Wrapper: break out of any residual container margin */
 [data-testid="stSidebar"] [data-testid="stRadio"] {
     margin: 0.5rem 0 0 0;
+    width: 100%;
+}
+
+[data-testid="stSidebar"] [data-testid="stRadio"] > div,
+[data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] {
+    width: 100%;
 }
 
 /* Remove widget label */
@@ -73,12 +98,16 @@ section[data-testid="stSidebar"] > div {
     gap: 0;
     margin-right: 0;
     width: 100%;
+    padding: 0;
 }
 
 /* Each nav row — full width, no border-radius */
 [data-testid="stSidebar"] [data-testid="stRadio"] label {
     display: flex !important;
+    align-self: stretch;
     align-items: center;
+    position: relative;
+    overflow: hidden;
     padding: 0.5rem 0.875rem;
     border-radius: 0;
     cursor: pointer;
@@ -89,12 +118,20 @@ section[data-testid="stSidebar"] > div {
     min-height: 36px;
     width: 100%;
     max-width: none;
+    min-width: 0;
     box-sizing: border-box;
     transition: background-color 0.1s ease, color 0.1s ease;
     user-select: none;
     -webkit-user-select: none;
     margin: 0 !important;
-    padding-right: 0.875rem;
+    margin-left: -0.875rem !important;
+    margin-right: -0.875rem !important;
+    width: calc(100% + 1.75rem) !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stRadio"] label > * {
+    position: relative;
+    z-index: 1;
 }
 
 /* Hide the radio circle */
@@ -113,11 +150,61 @@ section[data-testid="stSidebar"] > div {
     background-color: var(--nav-active);
     color: var(--fg);
     font-weight: 500;
-    border-left: 3px solid var(--accent);
-    padding-left: calc(0.875rem - 3px);
-    margin-left: 0;
-    margin-right: 0;
+    box-shadow: inset 4px 0 0 var(--accent);
+    margin-left: -0.875rem !important;
+    margin-right: -0.875rem !important;
+    width: calc(100% + 1.75rem) !important;
+}
+
+/* ── Sidebar button nav (used for menu pages) ───────────────────────────── */
+section[data-testid="stSidebar"] div[data-testid="stButton"] {
     width: 100%;
+    margin: 0;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button {
+    width: 100%;
+    min-height: 36px;
+    text-align: left;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 0.5rem 0.875rem;
+    border-radius: 0;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    color: var(--muted) !important;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.25rem;
+    transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button > div {
+    width: 100%;
+    justify-content: flex-start;
+    margin: 0;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button > div > p {
+    margin: 0;
+    text-align: left;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover {
+    background-color: var(--nav-hover) !important;
+    color: var(--fg) !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button[kind="primary"] {
+    background-color: var(--nav-active) !important;
+    color: var(--fg) !important;
+    font-weight: 500;
+    box-shadow: inset 4px 0 0 var(--accent) !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button[kind="primary"]:hover {
+    background-color: var(--nav-active) !important;
 }
 
 /* ── Brand header (gets its own horizontal padding) ──────────────────────── */
@@ -127,11 +214,11 @@ section[data-testid="stSidebar"] > div {
     gap: 10px;
     padding: 0 0.875rem 0.875rem 0.875rem;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 0.25rem;
+    margin-bottom: 3rem;
 }
 .brand-icon { font-size: 1.6rem; line-height: 1; }
 .brand-title {
-    font-size: 0.9375rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--fg);
     letter-spacing: -0.02em;
@@ -194,11 +281,81 @@ section[data-testid="stSidebar"] > div {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 1rem 1.25rem;
+    padding: 1rem 1.5rem;
     margin-bottom: 0.75rem;
     font-size: 0.875rem;
     color: var(--fg-2);
     line-height: 1.65;
+}
+h4 {
+    font-size: 1.2rem !important;
+    padding-bottom: .7rem !important;
+    font-weight: 600;
+    margin-bottom: 0;
+    color: var(--fg) !important;
+}
+
+/* ── Menu workflow bubbles ──────────────────────────────────────────────── */
+.workflow-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+}
+.workflow-bubble {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent), var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.9rem 1rem 0.85rem 1rem;
+}
+.workflow-bubble-current {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(59,130,246,0.15);
+}
+.workflow-row {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.65rem;
+}
+.workflow-badge {
+    width: 2rem;
+        margin: 0 !important;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    flex: 0 0 auto;
+}
+.workflow-step-title {
+    color: var(--fg);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+.workflow-step-desc {
+    color: var(--fg-2);
+    font-size: 0.78rem;
+    margin-top: 0.18rem;
+}
+
+div[data-testid="stButton"] button {
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    font-weight: 600;
+    padding: 0.45rem 0.9rem;
+    transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+}
+div[data-testid="stButton"] button:hover {
+    border-color: var(--accent);
+    background: var(--nav-hover);
+    transform: translateY(-1px);
 }
 
 /* ── Chart container ─────────────────────────────────────────────────────── */
@@ -261,11 +418,11 @@ section[data-testid="stSidebar"] > div {
     border: 1px solid var(--border);
     color: var(--muted);
     display: flex; align-items: center; justify-content: center;
-    font-weight: 600; font-size: 0.7rem;
+    font-weight: 600; font-size: 1rem;
     flex-shrink: 0;
     margin-top: 2px;
 }
-.step-title { font-weight: 500; color: var(--fg); font-size: 0.875rem; }
+.step-title { font-weight: 500; color: var(--fg); font-size: 1.2rem; }
 .step-desc  { color: var(--muted); font-size: 0.8rem; margin-top: 1px; }
 
 /* ── Dataframe ───────────────────────────────────────────────────────────── */
@@ -323,6 +480,17 @@ hr { border-color: var(--border) !important; }
 /* Multiselect container - stretch and scroll */
 [data-testid="stMultiSelect"] [role="combobox"] {
     width: 100% !important;
+}
+
+/* Multiselect input area — single scrollable row, no wrapping */
+[data-testid="stMultiSelect"] [data-baseweb="input"] {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+}
+[data-testid="stMultiSelect"] [data-baseweb="input"]::-webkit-scrollbar {
+    display: none !important;
 }
 
 /* Multiselect tags/pills - horizontal layout */

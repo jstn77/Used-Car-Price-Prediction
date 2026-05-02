@@ -134,18 +134,31 @@ with st.sidebar:
     <div class="brand-header">
         <div class="brand-icon">🚗</div>
         <div>
-            <div class="brand-title">CarPrice<span style="color:#3b82f6">.id</span></div>
+            <div class="brand-title">CarPrice<span style="color:var(--accent)">.id</span></div>
             <div class="brand-subtitle">ML Price Predictor</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    menu = st.radio(
-        "Navigation",
-        ["📂  Dataset", "📊  EDA", "⚙️  Preprocessing", "🧠  Training", "🔮  Prediction", "👥  About Us"],
-        label_visibility="collapsed",
-    )
-    menu = menu.split("  ", 1)[1]
+    nav_items = [
+        ("Menu", "🏠  Menu"),
+        ("Dataset", "📂  Dataset"),
+        ("EDA", "📊  EDA"),
+        ("Preprocessing", "⚙️  Preprocessing"),
+        ("Training", "🧠  Training"),
+        ("Prediction", "🔮  Prediction"),
+        ("About Us", "👥  About Us"),
+    ]
+    if "menu_choice" not in st.session_state:
+        st.session_state.menu_choice = "Menu"
+
+    for index, (page_name, label) in enumerate(nav_items, start=1):
+        button_type = "primary" if page_name == st.session_state.menu_choice else "secondary"
+        if st.button(label, key=f"sidebar_nav_{page_name}", use_container_width=True, type=button_type):
+            st.session_state.menu_choice = page_name
+            st.rerun()
+
+    menu = st.session_state.menu_choice
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
@@ -164,6 +177,135 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Menu
+# ══════════════════════════════════════════════════════════════════════════════
+if menu == "Menu":
+    # ── Hero ──────────────────────────────────────────────────────────────────
+    total_records = len(df)
+    total_brands  = df["brand"].nunique()
+    avg_price_m   = df["price (Rp)"].mean() / 1e6
+    price_range   = f"Rp {df['price (Rp)'].min()/1e6:.0f}M – {df['price (Rp)'].max()/1e6:.0f}M"
+
+    st.markdown(
+        f"""
+        <div style="
+            text-align:center;
+            padding:3rem 2rem 2.5rem 2rem;
+            border-radius:12px;
+            background:linear-gradient(135deg,rgba(59,130,246,0.18) 0%,rgba(139,92,246,0.15) 60%,rgba(16,185,129,0.08) 100%);
+            border:1px solid rgba(59,130,246,0.25);
+            margin-bottom:2rem;
+            position:relative;
+            overflow:hidden;
+        ">
+            <div style="font-size:3.5rem;margin-bottom:0.4rem;">🚗</div>
+            <div style="
+                font-size:2.6rem;font-weight:800;letter-spacing:-0.04em;
+                color:var(--fg);margin-bottom:0.5rem;line-height:1.1;
+            ">CarPrice<span style="color:var(--accent)">.id</span></div>
+            <div style="
+                font-size:1rem;color:var(--fg-2);max-width:480px;
+                margin:0 auto 1.5rem auto;line-height:1.6;
+            ">
+                A machine-learning powered tool to explore, analyze, and predict
+                used car prices in Indonesia — all in one guided workflow.
+            </div>
+            <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;">
+                <div style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);
+                    border-radius:999px;padding:0.4rem 1.1rem;font-size:0.82rem;color:var(--fg);font-weight:600;">
+                    {total_records:,} records
+                </div>
+                <div style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.35);
+                    border-radius:999px;padding:0.4rem 1.1rem;font-size:0.82rem;color:var(--fg);font-weight:600;">
+                    {total_brands} brands
+                </div>
+                <div style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);
+                    border-radius:999px;padding:0.4rem 1.1rem;font-size:0.82rem;color:var(--fg);font-weight:600;">
+                    avg Rp {avg_price_m:.0f}M
+                </div>
+                <div style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);
+                    border-radius:999px;padding:0.4rem 1.1rem;font-size:0.82rem;color:var(--fg);font-weight:600;">
+                    {price_range}
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # ── Workflow steps ────────────────────────────────────────────────────────
+    st.markdown(
+        '<div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;'
+        'text-transform:uppercase;color:var(--muted);margin-bottom:1rem;">How it works</div>',
+        unsafe_allow_html=True,
+    )
+
+    steps = [
+        ("📂", "Dataset",       "#3b82f6", "rgba(59,130,246,0.12)",  "Browse the two raw CSV sources and understand what fields are available."),
+        ("📊", "EDA",           "#8b5cf6", "rgba(139,92,246,0.12)", "Visualize price distributions, brand breakdowns, and feature correlations."),
+        ("⚙️", "Preprocessing", "#f59e0b", "rgba(245,158,11,0.12)", "Merge, clean, and encode the data into a model-ready table."),
+        ("🧠", "Training",      "#10b981", "rgba(16,185,129,0.12)", "Train a Random Forest model and inspect its feature importances."),
+        ("🔮", "Prediction",    "#ec4899", "rgba(236,72,153,0.12)", "Enter a car profile and get an instant price estimate."),
+    ]
+
+    st.markdown(
+        """<style>
+        div[data-testid="stHorizontalBlock"]:has(.workflow-step-card) {
+            align-items: stretch;
+        }
+        div[data-testid="stHorizontalBlock"]:has(.workflow-step-card)
+            > div[data-testid="stColumn"] > div[data-testid="stVerticalBlock"] {
+            height: 100%;
+        }
+        div[data-testid="stHorizontalBlock"]:has(.workflow-step-card)
+            > div[data-testid="stColumn"] > div[data-testid="stVerticalBlock"]
+            > div[data-testid="stVerticalBlockBorderWrapper"] {
+            height: 100%;
+        }
+        </style>""",
+        unsafe_allow_html=True,
+    )
+    cols = st.columns(len(steps))
+    for col, (icon, title, accent, bg, desc) in zip(cols, steps):
+        col.markdown(
+            f"""
+            <div class="workflow-step-card" style="
+                background:{bg};
+                border:1px solid {accent}40;
+                border-top:3px solid {accent};
+                border-radius:10px;
+                padding:1.1rem 1rem 1rem 1rem;
+                min-height:160px;
+                display:flex;flex-direction:column;
+            ">
+                <div style="font-size:1.6rem;margin-bottom:0.5rem;">{icon}</div>
+                <div style="font-size:1.1rem;font-weight:700;color:var(--fg);
+                    margin-bottom:0.35rem;letter-spacing:-0.01em;">{title}</div>
+                <div style="font-size:0.88rem;color:var(--fg-2);line-height:1.5;flex:1;">{desc}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    # ── Quick-start tip ───────────────────────────────────────────────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div style="
+            display:flex;align-items:center;gap:0.75rem;
+            background:var(--card);border:1px solid var(--border);
+            border-radius:8px;padding:0.85rem 1.25rem;
+            font-size:0.82rem;color:var(--fg-2);
+        ">
+            <span style="font-size:1.1rem;">💡</span>
+            <span>Follow the steps <strong style="color:var(--fg)">in order</strong> using the sidebar —
+            each page builds on the previous one. Jump straight to
+            <strong style="color:var(--fg)">Prediction</strong> if you just want a price estimate.</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 # ══════════════════════════════════════════════════════════════════════════════
 # Dataset
 # ══════════════════════════════════════════════════════════════════════════════
@@ -206,13 +348,18 @@ if menu == "Dataset":
         col_c.markdown(f'<div class="metric-card"><div class="metric-label">Missing Values</div><div class="metric-value">{df2_raw.isnull().sum().sum()}</div></div>', unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
-        f2, f4 = st.columns([4, 1])
+        f1, f2, f4 = st.columns([2, 4, 1])
+        with f1:
+            brands_ds2 = sorted(df2_raw["brand"].dropna().astype(str).str.lower().str.strip().unique().tolist()) if "brand" in df2_raw.columns else []
+            brand_f2   = st.selectbox("Filter by brand", ["All"] + [b.title() for b in brands_ds2], key="ds2_brand")
         with f2:
             cols_sel2 = st.multiselect("Columns", df2_raw.columns.tolist(), default=df2_raw.columns.tolist(), key="ds2_cols")
         with f4:
             n_rows2 = st.number_input("Rows", min_value=10, max_value=5000, value=100, step=50, key="ds2_n")
 
         view2 = df2_raw[cols_sel2] if cols_sel2 else df2_raw
+        if brand_f2 != "All" and "brand" in view2.columns:
+            view2 = view2[view2["brand"].astype(str).str.lower().str.strip() == brand_f2.lower()]
         st.dataframe(view2.head(n_rows2), use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -222,7 +369,7 @@ elif menu == "EDA":
     st.markdown("""
     <div class="page-header">
         <div class="page-header-title">📊 Exploratory Data Analysis</div>
-        <div class="page-header-purpose">Analyze patterns, distributions, and relationships in the dataset</div>
+        <div class="page-header-purpose">Analyze patterns, distributions, and relationships in the dataset. You can change the parameters too!</div>
         <div class="page-header-steps">Step 2 of 6</div>
     </div>
     """, unsafe_allow_html=True)
@@ -256,20 +403,66 @@ elif menu == "EDA":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    with st.expander("Descriptive Statistics", expanded=False):
-        st.dataframe(df_e.describe(), use_container_width=True)
+    with st.expander("📋 Data at a Glance — Key Stats Breakdown", expanded=False):
+        desc = df_e.describe().round(2)
+        stat_labels = {
+            "count": ("🔢", "Count"),
+            "mean":  ("⚖️",  "Mean"),
+            "std":   ("〰️", "Std Dev"),
+            "min":   ("⬇️",  "Min"),
+            "25%":   ("📉",  "25th %ile"),
+            "50%":   ("〽️", "Median"),
+            "75%":   ("📈",  "75th %ile"),
+            "max":   ("⬆️",  "Max"),
+        }
+        cols = list(desc.columns)
+        header_cells = "".join(
+            f'<th style="padding:0.55rem 0.9rem;text-align:right;color:var(--fg-2);'
+            f'font-size:0.72rem;font-weight:600;letter-spacing:0.06em;'
+            f'text-transform:uppercase;white-space:nowrap;">{c}</th>'
+            for c in cols
+        )
+        rows_html = ""
+        for i, stat in enumerate(desc.index):
+            icon, label = stat_labels.get(stat, ("", stat))
+            bg = "background:var(--card);" if i % 2 == 0 else ""
+            cells = "".join(
+                f'<td style="padding:0.55rem 0.9rem;text-align:right;'
+                f'color:var(--fg);font-size:0.82rem;font-variant-numeric:tabular-nums;">'
+                f'{desc.at[stat, c]:,.2f}</td>'
+                for c in cols
+            )
+            rows_html += (
+                f'<tr style="{bg}border-bottom:1px solid var(--border);">'
+                f'<td style="padding:0.55rem 0.9rem;white-space:nowrap;">'
+                f'<span style="margin-right:0.4rem;">{icon}</span>'
+                f'<span style="color:var(--fg-2);font-size:0.78rem;font-weight:500;'
+                f'text-transform:uppercase;letter-spacing:0.05em;">{label}</span>'
+                f'</td>{cells}</tr>'
+            )
+        st.markdown(
+            f'<div style="overflow-x:auto;border:1px solid transparent;'
+            f'border-radius:8px;background:var(--card);">'
+            f'<table style="width:100%;border-collapse:collapse;">'
+            f'<thead><tr style="border-bottom:2px solid var(--accent);">'
+            f'<th style="padding:0.55rem 0.9rem;text-align:left;color:var(--accent);'
+            f'font-size:0.72rem;font-weight:700;letter-spacing:0.08em;'
+            f'text-transform:uppercase;">Statistic</th>'
+            f'{header_cells}</tr></thead>'
+            f'<tbody>{rows_html}</tbody>'
+            f'</table></div>',
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
 
     if df_e.empty:
         st.warning("No data matches the current filters.")
     else:
-        # ── Row 1: Price dist + Top brands ────────────────────────────────
-        col_l, col_r = st.columns(2)
+        left_col, right_col = st.columns(2)
 
-        with col_l:
-            show_price_dist = st.toggle("📊 Price Distribution", value=True, key="toggle_price_dist")
-            if show_price_dist:
+        with left_col:
+            with st.expander("📊 Price Distribution", expanded=True):
                 st.markdown('<div class="chart-title">Price Distribution</div>', unsafe_allow_html=True)
                 fig, ax = styled_fig(7, 4)
                 sns.histplot(df_e["price (Rp)"], bins=40, kde=True, ax=ax,
@@ -290,30 +483,7 @@ elif menu == "EDA":
                 st.pyplot(fig, use_container_width=True)
                 plt.close(fig)
 
-        with col_r:
-            show_top_brands = st.toggle("📈 Top 10 Brands", value=True, key="toggle_top_brands")
-            if show_top_brands:
-                st.markdown('<div class="chart-title">Top 10 Brands by Listing</div>', unsafe_allow_html=True)
-                fig, ax = styled_fig(7, 4)
-                top_brands = df_e["brand"].value_counts().head(10)
-                cols_b = bar_colors(len(top_brands))
-                bars   = top_brands[::-1].plot(kind="barh", ax=ax, color=cols_b, zorder=2)
-                add_bar_labels(ax, ax.patches, fmt="{:.0f}", color=TEXT_COLOR)
-                ax.set_xlabel("Count")
-                ax.set_title("Top 10 Brands by Listing")
-                apply_chart_style(fig, ax)
-                # clean right/top spines
-                ax.spines["right"].set_visible(False)
-                ax.spines["top"].set_visible(False)
-                st.pyplot(fig, use_container_width=True)
-                plt.close(fig)
-
-        # ── Row 2: Transmission donut + Year dist ─────────────────────────
-        col_l, col_r = st.columns(2)
-
-        with col_l:
-            show_transmission = st.toggle("🔄 Transmission Split", value=True, key="toggle_transmission")
-            if show_transmission:
+            with st.expander("🔄 Transmission Split", expanded=True):
                 st.markdown('<div class="chart-title">Transmission Split</div>', unsafe_allow_html=True)
                 fig, ax = styled_fig(7, 4)
                 tc = df_e["transmission"].value_counts()
@@ -337,31 +507,7 @@ elif menu == "EDA":
                 st.pyplot(fig, use_container_width=True)
                 plt.close(fig)
 
-        with col_r:
-            show_year = st.toggle("📅 Manufacturing Year", value=True, key="toggle_year")
-            if show_year:
-                st.markdown('<div class="chart-title">Manufacturing Year Distribution</div>', unsafe_allow_html=True)
-                fig, ax = styled_fig(7, 4)
-                sns.histplot(df_e["year"], bins=25, ax=ax, color=ACCENT2, alpha=0.65,
-                             kde=True, line_kws={"linewidth": 1.4})
-                med_year = int(df_e["year"].median())
-                ax.axvline(med_year, color=AMBER, linewidth=1.4, linestyle="--",
-                           label=f"Median {med_year}")
-                ax.legend(fontsize=7.5, framealpha=0.15, labelcolor=TEXT_COLOR,
-                          facecolor=CHART_BG, edgecolor=AXIS_COLOR)
-                ax.set_xlabel("Year")
-                ax.set_ylabel("Count")
-                ax.set_title("Manufacturing Year Spread")
-                apply_chart_style(fig, ax)
-                st.pyplot(fig, use_container_width=True)
-                plt.close(fig)
-
-        # ── Row 3: Scatter plots ───────────────────────────────────────────
-        col_l, col_r = st.columns(2)
-
-        with col_l:
-            show_mileage = st.toggle("🚗 Mileage vs Price", value=True, key="toggle_mileage")
-            if show_mileage:
+            with st.expander("🚗 Mileage vs Price", expanded=True):
                 st.markdown('<div class="chart-title">Mileage vs Price (coloured by Year)</div>', unsafe_allow_html=True)
                 fig, ax = styled_fig(7, 4)
                 sc = ax.scatter(
@@ -384,9 +530,41 @@ elif menu == "EDA":
                 st.pyplot(fig, use_container_width=True)
                 plt.close(fig)
 
-        with col_r:
-            show_year_price = st.toggle("📊 Year vs Price", value=True, key="toggle_year_price")
-            if show_year_price:
+        with right_col:
+            with st.expander("📈 Top 10 Brands", expanded=True):
+                st.markdown('<div class="chart-title">Top 10 Brands by Listing</div>', unsafe_allow_html=True)
+                fig, ax = styled_fig(7, 4)
+                top_brands = df_e["brand"].value_counts().head(10)
+                cols_b = bar_colors(len(top_brands))
+                bars   = top_brands[::-1].plot(kind="barh", ax=ax, color=cols_b, zorder=2)
+                add_bar_labels(ax, ax.patches, fmt="{:.0f}", color=TEXT_COLOR)
+                ax.set_xlabel("Count")
+                ax.set_title("Top 10 Brands by Listing")
+                apply_chart_style(fig, ax)
+                # clean right/top spines
+                ax.spines["right"].set_visible(False)
+                ax.spines["top"].set_visible(False)
+                st.pyplot(fig, use_container_width=True)
+                plt.close(fig)
+
+            with st.expander("📅 Manufacturing Year", expanded=True):
+                st.markdown('<div class="chart-title">Manufacturing Year Distribution</div>', unsafe_allow_html=True)
+                fig, ax = styled_fig(7, 4)
+                sns.histplot(df_e["year"], bins=25, ax=ax, color=ACCENT2, alpha=0.65,
+                             kde=True, line_kws={"linewidth": 1.4})
+                med_year = int(df_e["year"].median())
+                ax.axvline(med_year, color=AMBER, linewidth=1.4, linestyle="--",
+                           label=f"Median {med_year}")
+                ax.legend(fontsize=7.5, framealpha=0.15, labelcolor=TEXT_COLOR,
+                          facecolor=CHART_BG, edgecolor=AXIS_COLOR)
+                ax.set_xlabel("Year")
+                ax.set_ylabel("Count")
+                ax.set_title("Manufacturing Year Spread")
+                apply_chart_style(fig, ax)
+                st.pyplot(fig, use_container_width=True)
+                plt.close(fig)
+
+            with st.expander("📊 Year vs Price", expanded=True):
                 st.markdown('<div class="chart-title">Year vs Price (coloured by Mileage)</div>', unsafe_allow_html=True)
                 fig, ax = styled_fig(7, 4)
                 sc = ax.scatter(
@@ -441,7 +619,7 @@ elif menu == "Preprocessing":
     missing = df.isnull().sum()
     missing = missing[missing > 0]
 
-    col_chart, col_table = st.columns([1, 2])
+    col_table, col_chart  = st.columns([3, 1])
 
     with col_chart:
         if missing.empty:
@@ -547,7 +725,7 @@ elif menu == "Training":
             st.warning("Feature importance not available.")
 
     st.markdown("---")
-    st.success("**Conclusion:** Mileage and car age are the strongest predictors of price. Brand and model also carry significant weight.")
+    st.success("**Conclusion:** Transmission, car age, and mileage are the strongest predictors of price. Brand and model also carry significant weight.")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Prediction
@@ -722,20 +900,20 @@ elif menu == "About Us":
     with col_desc:
         st.markdown("""
         <div class="info-box">
-            <b>About This Project</b><br><br>
+            <h4>About This Project</h4>
             This web application was developed as part of the <b>Machine Learning</b> course at
             <b>Bina Nusantara University</b>. Our goal was to build an end-to-end ML pipeline
             that predicts the market price of used cars in Indonesia based on real-world listings.
         </div>
         <div class="info-box">
-            <b>What We Built</b><br><br>
+            <h4>What We Built</h4>
             We collected and merged two used-car datasets, performed exploratory data analysis,
             cleaned and engineered features, then trained a <b>Random Forest Regressor</b> to
             estimate prices. The entire workflow — from raw data to live predictions — is
             accessible through this interactive dashboard.
         </div>
         <div class="info-box">
-            <b>Tech Stack</b><br><br>
+            <h4>Tech Stack</h4>
             Python &nbsp;·&nbsp; Scikit-learn &nbsp;·&nbsp; Pandas &nbsp;·&nbsp;
             Matplotlib / Seaborn &nbsp;·&nbsp; Streamlit
         </div>
